@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket 聊天室</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 80%;
+            max-width: 800px;
+            height: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #1a73e8;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fff;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .message .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .message .content {
+            flex: 1;
+        }
+
+        .message.received {
+            background: #f1f0f0;
+            align-self: flex-start;
+            margin-right: auto;
+        }
+
+        .message.sent {
+            background: #1a73e8;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            flex-direction: row-reverse;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #1557b0;
+        }
+
+        .connection-status {
+            padding: 10px;
+            text-align: center;
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-size: 14px;
+        }
+
+        /* 添加动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .exit-btn {
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .exit-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* 添加用户名显示样式 */
+        .message .content .username {
+            font-size: 12px;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .message.received .content .username {
+            color: #1a73e8;
+        }
+
+        .message.sent .content .username {
+            color: white;
+        }
+
+        /* 调整消息气泡样式 */
+        .message .content {
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .message.received .content {
+            background: #f1f0f0;
+        }
+
+        .message.sent .content {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .file-btn {
+            padding: 12px;
+            background: #f1f1f1;
+            color: #666;
+            margin-right: 5px;
+        }
+        
+        .file-btn:hover {
+            background: #e1e1e1;
+        }
+
+        .message .file-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .message .file-content i {
+            font-size: 24px;
+        }
+
+        .message .file-content .file-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message .file-content .file-name {
+            font-weight: bold;
+        }
+
+        .message .file-content .file-size {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>WebSocket 聊天室</h2>
+            <button class="exit-btn" onclick="exitChat()">
+                <i class="fas fa-sign-out-alt"></i> 退出聊天室
+            </button>
+        </div>
+        <div class="connection-status" id="status">
+            连接状态: 未连接
+        </div>
+        <div class="chat-messages" id="messageArea"></div>
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="输入消息...">
+            <input type="file" id="fileInput" style="display: none" onchange="handleFileSelect()">
+            <button onclick="document.getElementById('fileInput').click()" class="file-btn">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i> 发送
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const messageArea = document.getElementById('messageArea');
+        const messageInput = document.getElementById('messageInput');
+        const statusElement = document.getElementById('status');
+        let userAvatar = '';
+        let username = '';
+        
+        // 添加心跳相关变量
+        let heartbeatInterval = null;
+        let reconnectTimeout = null;
+        const HEARTBEAT_INTERVAL = 30000; // 30秒发送一次心跳
+        const RECONNECT_TIMEOUT = 3000;   // 3秒后重连
+        let isConnecting = false;         // 防止重复连接
+
+        // 心跳检测函数
+        function startHeartbeat() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+            }
+            heartbeatInterval = setInterval(() => {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    try {
+                        ws.send(JSON.stringify({ type: 'heartbeat' }));
+                    } catch (error) {
+                        console.error('心跳发送失败:', error);
+                        reconnect();
+                    }
+                } else {
+                    reconnect();
+                }
+            }, HEARTBEAT_INTERVAL);
+        }
+
+        // 重连函数
+        function reconnect() {
+            if (isConnecting) return; // 如果正在连接中，直接返回
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+            
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+            
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
+            
+            isConnecting = true;
+            statusElement.textContent = '连接状态: 重新连接中...';
+            statusElement.style.background = '#fff3cd';
+            statusElement.style.color = '#856404';
+            
+            reconnectTimeout = setTimeout(() => {
+                connect().finally(() => {
+                    isConnecting = false;
+                });
+            }, RECONNECT_TIMEOUT);
+        }
+
+        // 添加获取用户信息的函数
+        async function getUserInfo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            username = urlParams.get('username');
+            
+            if (!username) {
+                console.error('未找到用户名参数');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${window.location.protocol}//${window.location.hostname}:8080/api/user/current?username=${encodeURIComponent(username)}`);
+                const data = await response.json();
+                if (data.success && data.user) {
+                    userAvatar = data.user.avatar || './img/default-avatar.jpg';
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+                userAvatar = './img/default-avatar.jpg';
+            }
+        }
+
+        // 修改连接初始化函数，添加错误处理
+        async function connect() {
+            try {
+                await getUserInfo();
+                
+                if (!username) {
+                    throw new Error('无法获取用户信息');
+                }
+                
+                if (ws) {
+                    ws.close();
+                    ws = null;
+                }
+                
+                ws = new WebSocket('ws://localhost:8080/myWs1');
+                
+                ws.onopen = function() {
+                    statusElement.textContent = '连接状态: 已连接';
+                    statusElement.style.background = '#e6ffe6';
+                    statusElement.style.color = '#28a745';
+                    startHeartbeat(); // 启动心跳
+                };
+    
+                ws.onmessage = function(event) {
+                    try {
+                        const messageData = JSON.parse(event.data);
+                        
+                        // 处理心跳响应
+                        if (messageData.type === 'heartbeat') {
+                            return; // 心跳响应不需要显示
+                        }
+                        
+                        // 处理群聊消息
+                        if (messageData.target === 'all') {
+                            if (messageData.type === 'chat') {
+                                const message = document.createElement('div');
+                                message.className = 'message received';
+                                message.innerHTML = `
+                                    <img src="${messageData.avatar || './img/default-avatar.jpg'}" class="avatar" alt="用户头像">
+                                    <div class="content">
+                                        <div class="username">${messageData.username}</div>
+                                        <p>${messageData.content}</p>
+                                    </div>
+                                `;
+                                messageArea.appendChild(message);
+                                messageArea.scrollTop = messageArea.scrollHeight;
+                            } else if (messageData.type === 'file') {
+                                const message = document.createElement('div');
+                                message.className = 'message received';
+                                message.innerHTML = `
+                                    <img src="${messageData.avatar || './img/default-avatar.jpg'}" class="avatar" alt="${messageData.username}的头像">
+                                    <div class="content">
+                                        <div class="username">${messageData.username}</div>
+                                        <div class="file-content" onclick="downloadFile('${messageData.content.fileId}', '${messageData.content.fileName}')">
+                                            <i class="fas fa-file"></i>
+                                            <div class="file-info">
+                                                <span class="file-name">${messageData.content.fileName}</span>
+                                                <span class="file-size">${messageData.content.fileSize}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                messageArea.appendChild(message);
+                                messageArea.scrollTop = messageArea.scrollHeight;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('解析消息失败:', e);
+                        // 如果不是JSON格式，按照普通文本处理
+                        const message = document.createElement('div');
+                        message.className = 'message system';
+                        message.innerHTML = `
+                            <div class="content">
+                                <p>${event.data}</p>
+                            </div>
+                        `;
+                        messageArea.appendChild(message);
+                        messageArea.scrollTop = messageArea.scrollHeight;
+                    }
+                };
+    
+                ws.onclose = function(event) {
+                    statusElement.textContent = `连接状态: 已断开 (代码: ${event.code})`;
+                    statusElement.style.background = '#ffe6e6';
+                    statusElement.style.color = '#dc3545';
+                    
+                    if (heartbeatInterval) {
+                        clearInterval(heartbeatInterval);
+                        heartbeatInterval = null;
+                    }
+                    
+                    // 非正常关闭时自动重连
+                    if (event.code !== 1000) {
+                        reconnect();
+                    }
+                };
+    
+                ws.onerror = function(error) {
+                    console.error('WebSocket错误:', error);
+                    statusElement.textContent = '连接状态: 连接错误';
+                    statusElement.style.background = '#ffe6e6';
+                    statusElement.style.color = '#dc3545';
+                };
+            } catch (error) {
+                console.error('连接失败:', error);
+                statusElement.textContent = '连接状态: ' + (error.message || '连接失败');
+                statusElement.style.background = '#ffe6e6';
+                statusElement.style.color = '#dc3545';
+                
+                // 如果是用户信息错误，延迟重连
+                if (error.message === '无法获取用户信息') {
+                    setTimeout(reconnect, RECONNECT_TIMEOUT * 2);
+                } else {
+                    reconnect();
+                }
+            }
+        }
+
+        // 修改发送消息函数，添加连接状态检查
+        function sendMessage() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                alert('连接已断开，正在重新连接...');
+                reconnect();
+                return;
+            }
+
+            if (messageInput.value.trim()) {
+                const messageObj = {
+                    type: 'chat',
+                    content: messageInput.value.trim(),
+                    username: username,
+                    avatar: userAvatar || './img/default-avatar.jpg',
+                    target: 'all'  // 群聊消息
+                };
+
+                try {
+                    // 显示自己发送的消息
+                    const message = document.createElement('div');
+                    message.className = 'message sent';
+                    message.innerHTML = `
+                        <img src="${userAvatar || './img/default-avatar.jpg'}" class="avatar" alt="我的头像">
+                        <div class="content">
+                            <div class="username">我</div>
+                            <p>${messageObj.content}</p>
+                        </div>
+                    `;
+                    messageArea.appendChild(message);
+                    messageArea.scrollTop = messageArea.scrollHeight;
+                    
+                    // 发送消息到服务器
+                    ws.send(JSON.stringify(messageObj));
+                    messageInput.value = '';
+                } catch (error) {
+                    console.error('发送消息失败:', error);
+                    alert('发送消息失败，正在重新连接...');
+                    reconnect();
+                }
+            }
+        }
+
+        // 修改退出聊天室函数，添加清理逻辑
+        function exitChat() {
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+            
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = null;
+            }
+            
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+
+            const username = new URLSearchParams(window.location.search).get('username');
+            window.location.href = `${window.location.protocol}//${window.location.hostname}:8080/index.html?username=${encodeURIComponent(username)}`;
+        }
+
+        // 按回车发送消息
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // 页面加载完成后接WebSocket
+        document.addEventListener('DOMContentLoaded', function() {
+            connect();
+        });
+
+        // 处理文件选择
+        async function handleFileSelect() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            // 创建 FormData 对象上传文件
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    // 发送文件消息
+                    const messageObj = {
+                        type: 'file',
+                        content: {
+                            fileId: result.fileId,
+                            fileName: file.name,
+                            fileSize: formatFileSize(file.size)
+                        },
+                        username: username,
+                        avatar: userAvatar || './img/default-avatar.jpg',
+                        target: 'all'  // 添加target字段，标识为群聊消息
+                    };
+
+                    // 先显示发送的文件消息
+                    const message = document.createElement('div');
+                    message.className = 'message sent';
+                    message.innerHTML = `
+                        <img src="${userAvatar || './img/default-avatar.jpg'}" class="avatar" alt="我的头像">
+                        <div class="content">
+                            <div class="username">我</div>
+                            <div class="file-content" onclick="downloadFile('${result.fileId}', '${file.name}')">
+                                <i class="fas fa-file"></i>
+                                <div class="file-info">
+                                    <span class="file-name">${file.name}</span>
+                                    <span class="file-size">${formatFileSize(file.size)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    messageArea.appendChild(message);
+                    messageArea.scrollTop = messageArea.scrollHeight;
+
+                    // 然后发送WebSocket消息
+                    ws.send(JSON.stringify(messageObj));
+                } else {
+                    throw new Error(result.message || '文件上传失败');
+                }
+            } catch (error) {
+                console.error('文件上传失败:', error);
+                alert('文件上传失败：' + (error.message || '请重试'));
+            }
+
+            // 清空文件输入框，允许重复选择同一文件
+            fileInput.value = '';
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // 下载文件
+        async function downloadFile(fileId, fileName) {
+            try {
+                const response = await fetch(`/api/download/${fileId}`);
+                if (!response.ok) throw new Error('下载失败');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('文件下载失败:', error);
+                alert('文件下载失败，请重试');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- 引入css文件 -->
+        <link rel="stylesheet" href="/css/login.css">
+        <!-- 引入jquery -->
+        <script src="https://code.jquery.com/jquery-latest.js"></script>
+        <title>登录</title>
+    </head>
+    <body>
+        <!-- 最外层的大盒子 -->
+       <div class="box">
+        <!-- 滑动盒子 -->
+        <div class="pre-box">
+            <h1>WELCOME</h1>
+            <p>登录以加入聊天室</p>
+            <div class="img-box">
+                <img src="/img/test1.jpg" alt="">
+            </div>
+        </div>
+        <!-- 注册盒子 -->
+        <div class="register-form">
+            <!-- 标题盒子 -->
+            <div class="title-box">
+                <h1>注册</h1>
+            </div>
+            <!-- 输入框盒子 -->
+            <div class="input-box">
+                <input type="text" placeholder="用户名">
+                <input type="password" placeholder="密码">
+                <input type="password" placeholder="确认密码">
+            </div>
+            <!-- 按钮盒子 -->
+            <div class="btn-box">
+                <button onclick="register()">注册</button>
+                <!-- 绑定点击事件 -->
+                <p onclick="mySwitch()">已有账号?去登录</p>
+            </div>
+        </div>
+        <!-- 登录盒子 -->
+        <div class="login-form">
+            <!-- 标题盒子 -->
+            <div class="title-box">
+                <h1>登录</h1>
+            </div>
+            <!-- 输入框盒子 -->
+            <div class="input-box">
+                <input type="text" placeholder="用户名">
+                <input type="password" placeholder="密码">
+            </div>
+            <!-- 按钮盒子 -->
+            <div class="btn-box">
+                <button onclick="login()">登录</button>
+                <!-- 绑定点击事件 -->
+                <p onclick="mySwitch()">没有账号?去注册</p>
+            </div>
+        </div>
+       </div>
+       <script>
+            // 滑动的状态
+             let flag=true
+             const mySwitch=()=>{
+                if(flag){
+                    // 获取到滑动盒子的dom元素并修改它移动的位
+                    $(".pre-box").css("transform","translateX(100%)")
+                    // 获取到滑动盒子的dom元素并修改它的背景颜色
+                    $(".pre-box").css("background-color","#c9e0ed")
+                    //修改图片的路径
+                    $("img").attr("src","/img/test2.jpg")
+                    
+                }
+                else {
+                    $(".pre-box").css("transform","translateX(0%)")
+                    $(".pre-box").css("background-color","#edd4dc")
+                    $("img").attr("src","/img/test1.jpg")
+                }
+                flag=!flag
+             }
+       </script>
+       <script>
+            const bubleCreate=()=>{
+                // 获取body元素
+                const body = document.body
+                // 创建泡泡元素
+                const buble = document.createElement('span')
+                // 设置泡泡半径
+                let r = Math.random()*5 + 25 //半径大小为25~30
+                // 设置泡泡的宽高
+                buble.style.width=r+'px'
+                buble.style.height=r+'px'
+                // 设置泡泡的随机起点
+                buble.style.left=Math.random()*innerWidth+'px'
+                // 为body添加buble元素
+                body.append(buble)
+                // 4s清除一次泡泡
+                setTimeout(()=>{
+                    buble.remove()
+                },4000)
+            }
+            // 每200ms生成一个泡泡
+            setInterval(() => {
+                bubleCreate()
+            }, 200);
+        </script>
+        <script>
+            function login() {
+                const username = $('.login-form input[type="text"]').val();
+                const password = $('.login-form input[type="password"]').val();
+                
+                // 添加输入验证
+                if (!username || !password) {
+                    alert('用户名和密码不能为空');
+                    return;
+                }
+                
+                // 获取当前域名和端口
+                const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
+                
+                $.ajax({
+                    url: baseUrl + '/api/user/login',  // 使用完整URL
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    data: {
+                        username: username,
+                        password: password
+                    },
+                    success: function(response) {
+                        console.log('登录成功响应:', response);
+                        if (response.success) {
+                            alert(response.message);
+                            // 构建带有用户信息的URL
+                            const redirectUrl = `${baseUrl}/index.html?username=${encodeURIComponent(response.username)}`;
+                            window.location.href = redirectUrl;
+                        } else {
+                            alert(response.message || '登录失败');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('请求失败状态:', xhr.status);
+                        console.log('完整的错误信息:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText
+                        });
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            alert(response.message || '登录失败');
+                        } catch (e) {
+                            alert('登录请求失败，请稍后重试');
+                            console.error('Error details:', status, error);
+                        }
+                    }
+                });
+            }
+
+            function register() {
+                const username = $('.register-form input[type="text"]').val();
+                const password = $('.register-form input[type="password"]').eq(0).val();
+                const confirmPassword = $('.register-form input[type="password"]').eq(1).val();
+                
+                if (!username || !password || !confirmPassword) {
+                    alert('所有字段都必须填写');
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的密码不一致');
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    alert('密码长度不能少于6位');
+                    return;
+                }
+                
+                // 获取当前域名和端口
+                const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
+                
+                $.ajax({
+                    url: baseUrl + '/api/user/register',  // 使用完整URL
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded',
+                    data: {
+                        username: username,
+                        password: password,
+                        nickname: username
+                    },
+                    success: function(response) {
+                        console.log('注册成功响应:', response);
+                        if (response.success) {
+                            alert(response.message);
+                            mySwitch();
+                        } else {
+                            alert(response.message || '注册失败');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('请求失败状态:', xhr.status);
+                        console.log('完整的错误信息:', {
+                            status: status,
+                            error: error,
+                            response: xhr.responseText
+                        });
+                        try {
+                            const response = JSON.parse(xhr.responseText);
+                            alert(response.message || '注册失败');
+                        } catch (e) {
+                            alert('注册请求失败，请稍后重试');
+                            console.error('Error details:', status, error);
+                        }
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

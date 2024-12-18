@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主界面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            list-style: none;
+            text-decoration: none;
+        }
+
+        body {
+            background: #e4e9f5;
+        }
+
+        section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font: 900 100px '';
+            color: rgba(110, 90, 240, 0.3);
+            background: #e4e9f5;
+            overflow-y: hidden;
+        }
+
+        section.active {
+            display: flex;
+        }
+
+        .shell {
+            position: fixed;
+            width: 84px;
+            height: 100%;
+            background: #fff;
+            z-index: 9999;
+            transition: width 0.5s;
+            padding-left: 10px;
+            overflow: hidden;
+        }
+
+        .shell:hover {
+            width: 300px;
+        }
+
+        .imageBox {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .imageBox img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .shell ul {
+            position: relative;
+            height: 100vh;
+        }
+
+        .shell ul li {
+            position: relative;
+            padding: 5px;
+        }
+
+        .active {
+            background: #e4e9f5;
+            border-top-left-radius: 50px;
+            border-bottom-left-radius: 50px;
+        }
+
+        .active::before {
+            content: "";
+            position: absolute;
+            top: -30px;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 5px 5px 0 5px #e4e9f5;
+            background: transparent;
+        }
+
+        .active::after {
+            content: "";
+            position: absolute;
+            bottom: -30px;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            border-top-right-radius: 25px;
+            box-shadow: 5px -5px 0 5px #e4e9f5;
+            background: transparent;
+        }
+
+        #logo {
+            margin: 40px 0 100px 0;
+        }
+
+        .shell ul li a {
+            position: relative;
+            display: flex;
+            white-space: nowrap;
+        }
+
+        .icon {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 60px;
+            padding-left: 10px;
+            height: 70px;
+            color: #333;
+            transition: 0.5s;
+            color: rgb(110, 90, 240);
+        }
+
+        .icon i {
+            font-size: 30px;
+            z-index: 999;
+        }
+
+        .text {
+            position: relative;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            color: #333;
+            padding-left: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: 0.5s;
+        }
+
+        .shell ul li:hover a .icon,
+        .shell ul li:hover a .text {
+            color: #ffa117;
+        }
+
+        .active a .icon::before {
+            content: "";
+            position: absolute;
+            inset: 5px;
+            width: 60px;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.5s;
+            border: 7px solid rgb(110, 90, 240);
+            box-sizing: border-box;
+        }
+
+        /* 个人资料页面样式 */
+        #personinfo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .profile-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            width: 500px;
+            max-width: 90%;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .profile-header h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 30px;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .avatar-container:hover {
+            transform: scale(1.05);
+        }
+
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgb(110, 90, 240);
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 14px;
+            padding: 8px;
+            text-align: center;
+            border-bottom-left-radius: 75px;
+            border-bottom-right-radius: 75px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .avatar-container:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .profile-info .info-item {
+            margin-bottom: 25px;
+        }
+
+        .profile-info label {
+            display: block;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .profile-info input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .profile-info input:focus {
+            outline: none;
+            border-color: rgb(110, 90, 240);
+        }
+
+        .profile-info input[readonly] {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        #saveProfile {
+            width: 100%;
+            padding: 14px;
+            background: rgb(110, 90, 240);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+
+        #saveProfile:hover {
+            background: rgb(90, 70, 220);
+        }
+
+        /* 好友列表容器样式 */
+        .friend-container {
+            display: flex;
+            width: calc(100% - 100px);
+            height: 80vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 20px 20px 100px;
+            overflow: hidden;
+            position: relative;
+            transition: margin-left 0.5s;
+        }
+
+        /* 当侧边栏展开时的样式 */
+        .shell:hover + section .friend-container {
+            margin-left: 320px;
+            width: calc(100% - 320px);
+        }
+
+        /* 左侧好友列表样式 */
+        .friend-list {
+            width: 280px;
+            border-right: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .friend-list-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .friend-list-header h3 {
+            color: #333;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .friend-list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            height: calc(100% - 60px);
+        }
+
+        /* 右侧内容区样式 */
+        .friend-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .friend-actions {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .friend-actions button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .search-user-btn {
+            background: #1a73e8;
+            color: white;
+        }
+
+        .search-user-btn:hover {
+            background: #1557b0;
+        }
+
+        .friend-requests-btn {
+            background: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8 !important;
+        }
+
+        .friend-requests-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .request-count {
+            background: #ff4444;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        .friend-main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .placeholder-text {
+            color: #666;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* 好友列表项样式 */
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .friend-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .friend-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .friend-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .status-online {
+            background-color: #2ecc71;
+        }
+
+        .status-offline {
+            background-color: #95a5a6;
+        }
+
+        /* 搜索容器样式 */
+        .search-container {
+            padding: 20px;
+            width: 100%;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-button {
+            padding: 10px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .search-results {
+            margin-top: 20px;
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-name {
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .search-result-username {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .add-friend-btn {
+            padding: 8px 15px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .add-friend-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 好友请求列表样式 */
+        .friend-requests-container {
+            padding: 20px;
+            width: 100%;
+        }
+
+        .friend-request-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .accept-btn {
+            padding: 8px 15px;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .reject-btn {
+            padding: 8px 15px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* 搜索栏容器 */
+        .search-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            width: 100%;
+        }
+
+        /* 搜索栏 */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+            margin-right: 15px;
+        }
+
+        /* 搜索输入框 */
+        .search-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: #1a73e8;
+        }
+
+        /* 搜索按钮 */
+        .search-button {
+            padding: 10px 20px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .search-button:hover {
+            background: #1557b0;
+        }
+
+        /* 搜索结果容器 */
+        .search-results-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            height: calc(100% - 70px);
+        }
+
+        /* 搜索结果项 */
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+        }
+
+        .search-result-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .search-result-username {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .add-friend-btn {
+            padding: 8px 15px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .add-friend-btn:hover {
+            background: #1557b0;
+        }
+
+        .add-friend-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .no-requests {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .friend-requests-container h3 {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .friend-list-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 8px;
+        }
+
+        .friend-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .friend-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+
+        .friend-info {
+            flex: 1;
+        }
+
+        .friend-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .friend-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .status-online {
+            background-color: #2ecc71;
+        }
+
+        .status-offline {
+            background-color: #95a5a6;
+        }
+
+        .no-friends {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            color: #dc3545;
+            font-size: 14px;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            padding: 20px;
+            background: #1a73e8;
+            color: white;
+            border-radius: 12px 12px 0 0;
+            text-align: center;
+        }
+
+        .chat-header h2 {
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .chat-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .public-chat-btn {
+            text-align: center;
+        }
+
+        .join-chat-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .join-chat-btn:hover {
+            background: #1557b0;
+        }
+
+        .join-chat-btn i {
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="shell">
+    <ul class="nav">
+        <li class="active" id="logo">
+            <a href="#">
+                <div class="icon">
+                    <div class="imageBox" id="userAvatar">
+                        <img src="./img/defult.jpeg" alt="用户头像">
+                    </div>
+                </div>
+                <div class="text" id="userName">加载中...</div>
+            </a>
+        </li>
+        <li>
+            <a href="#chat">
+                <div class="icon">
+                    <img src="./img/chat.png" alt="chat" style="width: 30px; height: 30px;">
+                </div>
+                <div class="text">聊天</div>
+            </a>
+        </li>
+        <li>
+            <a href="#friend">
+                <div class="icon">
+                    <img src="./img/friend.png" alt="friend" style="width: 30px; height: 30px;">
+                </div>
+                <div class="text">好友</div>
+            </a>
+        </li>
+        <li>
+            <a href="#personinfo">
+                <div class="icon">
+                    <img src="./img/personinfo.png" alt="personinfo" style="width: 30px; height: 30px;">
+                </div>
+                <div class="text">个人资料</div>
+            </a>
+        </li>
+        <li>
+            <a href="javascript:void(0)" onclick="logout()">
+                <div class="icon">
+                    <i class="iconfont icon-tuichu"></i>
+                </div>
+                <div class="text">退出登录</div>
+            </a>
+        </li>
+    </ul>
+</div>
+<section id="chat">
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>聊天</h2>
+        </div>
+        <div class="chat-content">
+            <div class="public-chat-btn">
+                <button onclick="joinPublicChat()" class="join-chat-btn">
+                    <i class="fas fa-users"></i> 加入公共聊天室
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="friend">
+    <div class="friend-container">
+        <!-- 左侧好友列表 -->
+        <div class="friend-list">
+            <div class="friend-list-header">
+                <h3>好友列表</h3>
+            </div>
+            <div class="friend-list-content">
+                <!-- 好友列表将通过 JavaScript 动态添加 -->
+            </div>
+        </div>
+        
+        <!-- 右侧内容区 -->
+        <div class="friend-content">
+            <div class="friend-actions">
+                <div class="search-container">
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" class="search-input" placeholder="请输入用户名搜索...">
+                        <button id="searchButton" class="search-button">搜索</button>
+                    </div>
+                    <button class="friend-requests-btn">
+                        <i class="fas fa-user-plus"></i> 好友请求
+                        <span class="request-count">0</span>
+                    </button>
+                </div>
+            </div>
+            <div class="search-results-container">
+                <!-- 搜索结果将在这里显示 -->
+            </div>
+        </div>
+    </div>
+</section>
+<section id="personinfo">
+    <div class="profile-container">
+        <div class="profile-header">
+            <h2>个人资料</h2>
+            <div class="avatar-container">
+                <img id="profileAvatar" src="./img/defult.jpeg" alt="用户头像">
+                <div class="avatar-overlay">点击更换头像</div>
+            </div>
+            <input type="file" id="avatarInput" accept="image/*">
+        </div>
+        <div class="profile-info">
+            <div class="info-item">
+                <label>用户名</label>
+                <input type="text" id="profileUsername" readonly>
+            </div>
+            <div class="info-item">
+                <label>昵称</label>
+                <input type="text" id="profileNickname" placeholder="请输入昵称">
+            </div>
+            <button id="saveProfile">保存修改</button>
+        </div>
+    </div>
+</section>
+</body>
+
+<script>
+    // 获取当前域名和端口
+    const baseUrl = window.location.protocol + '//' + window.location.hostname + ':8080';
+    
+    // 从 URL 中获取用户名
+    function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+    
+    // 页面加载时获取用户信息
+    window.onload = function() {
+    // 立即执行函数表达式(IIFE)，确保局部变量不污染全局命名空间
+    (async function() {
+        // 获取URL中的用户名参数
+        const getUsername = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('username');
+        };
+
+        // 更新用户信息
+        const updateUserInfo = (user) => {
+            // 更新头像
+            document.getElementById('userAvatar').querySelector('img').src = user.avatar || './img/defult.jpeg';
+            // 更新昵称
+            document.getElementById('userName').textContent = user.nickname || user.username;
+        };
+
+        // 执行获取用户信息的逻辑
+        const fetchUserInfo = async () => {
+            try {
+                const username = getUsername();
+                if (!username) {
+                    console.warn('未找到用户名参数，重定向登录页面');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const response = await fetch(`${baseUrl}/api/user/current?username=${encodeURIComponent(username)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    updateUserInfo(data.user);
+                } else {
+                    throw new Error(data.message || '获取用户信息失败');
+                }
+            } catch (error) {
+                console.error('获取用户信息失败:', error);
+                alert('获取用户信息失败，请重新登录');
+                window.location.href = '/login.html';
+            }
+        };
+
+        // 执行获取用户信息
+        await fetchUserInfo();
+    })();
+};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let nav = document.querySelectorAll(".nav li");
+        let sections = document.querySelectorAll("section");
+        
+        // 初始化显示第一个section
+        sections[0].classList.add('active');
+        
+        function activeLink() {
+            // 移除所有active类
+            nav.forEach((item) => item.classList.remove("active"));
+            sections.forEach((section) => section.classList.remove("active"));
+            
+            // 添加active类到当前点击的项目
+            this.classList.add("active");
+            
+            // 获取对应的section id并显示
+            const targetId = this.querySelector('a').getAttribute('href').replace('#', '');
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        }
+        
+        // 为每个导航项添加点击事件
+        nav.forEach((item) => {
+            item.addEventListener("click", function(e) {
+                // 如果点击的是退出登录，不阻止默认行为
+                if (!e.currentTarget.querySelector('a[href="javascript:void(0)"]')) {
+                    e.preventDefault();
+                }
+                activeLink.call(this);
+            });
+        });
+    });
+
+    function logout() {
+        if(confirm('确定要退出登录吗？')) {
+            window.location.href = baseUrl + '/login.html';
+        }
+    }
+
+    // 添加个人资料相关的代码
+    document.addEventListener('DOMContentLoaded', function() {
+        const profileAvatar = document.getElementById('profileAvatar');
+        const avatarInput = document.getElementById('avatarInput');
+        const profileUsername = document.getElementById('profileUsername');
+        const profileNickname = document.getElementById('profileNickname');
+        const saveProfileBtn = document.getElementById('saveProfile');
+        
+        // 点击头像触发文件选择
+        profileAvatar.addEventListener('click', () => {
+            avatarInput.click();
+        });
+        
+        // 处理头像上传
+        avatarInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('avatar', file);
+            formData.append('username', getQueryParam('username'));
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/user/updateAvatar`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    // 更新页面上的所有头像显示
+                    const avatarUrl = baseUrl + data.avatarUrl;
+                    profileAvatar.src = avatarUrl;
+                    document.getElementById('userAvatar').querySelector('img').src = avatarUrl;
+                    alert('头像更新成功！');
+                } else {
+                    throw new Error(data.message || '更新失败');
+                }
+            } catch (error) {
+                console.error('上传头像失败:', error);
+                alert('上传头像失败：' + error.message);
+            }
+        });
+        
+        // 保存个人资料
+        saveProfileBtn.addEventListener('click', async () => {
+            const newNickname = profileNickname.value.trim();
+            if (!newNickname) {
+                alert('昵称不能为空！');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/user/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `username=${encodeURIComponent(getQueryParam('username'))}&nickname=${encodeURIComponent(newNickname)}`
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('userName').textContent = newNickname;
+                    alert('个人资料更新成功！');
+                } else {
+                    throw new Error(data.message || '更新失败');
+                }
+            } catch (error) {
+                console.error('更新个人资料失败:', error);
+                alert('更新失败，请重试');
+            }
+        });
+        
+        // 在页面加载时填充个人资料
+        async function loadProfileInfo() {
+            const username = getQueryParam('username');
+            if (!username) return;
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/user/current?username=${encodeURIComponent(username)}`);
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    profileUsername.value = data.user.username;
+                    profileNickname.value = data.user.nickname || '';
+                    profileAvatar.src = data.user.avatar || './img/defult.jpeg';
+                }
+            } catch (error) {
+                console.error('加载个人资料失败:', error);
+            }
+        }
+        
+        loadProfileInfo();
+    });
+
+    // 添加好友相关的事件处理
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取元素引用
+        const searchUserBtn = document.querySelector('.search-user-btn');
+        const friendRequestsBtn = document.querySelector('.friend-requests-btn');
+        const friendMainContent = document.querySelector('.friend-main-content');
+        
+        // 确保元素存在后再添加事件监听
+        if (searchUserBtn) {
+            searchUserBtn.addEventListener('click', function() {
+                // ... 搜索用户的代码 ...
+            });
+        }
+        
+        if (friendRequestsBtn) {
+            friendRequestsBtn.addEventListener('click', function() {
+                // ... 处理好友请求的代码 ...
+            });
+        }
+        
+        // 定义 loadPendingRequestsCount 函数
+        window.loadPendingRequestsCount = async function() {
+            try {
+                const username = getQueryParam('username');
+                const response = await fetch(`${baseUrl}/api/friendship/requests?username=${encodeURIComponent(username)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const requestCount = document.querySelector('.request-count');
+                    if (requestCount) {
+                        const pendingCount = data.requests.filter(request => request.status === 0).length;
+                        requestCount.textContent = pendingCount;
+                    }
+                }
+            } catch (error) {
+                console.error('加载好友请求数量失败:', error);
+            }
+        };
+
+        // 建立 WebSocket 连接
+        const ws = new WebSocket('ws://localhost:8080/myWs1');
+        
+        ws.onmessage = function(event) {
+            const message = event.data;
+            if (message.startsWith('FRIEND_REQUEST:')) {
+                const [, fromUser, toUser] = message.split(':');
+                const currentUser = getQueryParam('username');
+                
+                if (toUser === currentUser) {
+                    // 刷新好友请求数量
+                    loadPendingRequestsCount();
+                    // 显示通知
+                    alert(`收到来自 ${fromUser} 的好友请求`);
+                }
+            }
+        };
+
+        // 初始加载
+        loadPendingRequestsCount();
+    });
+
+    // 在现有的 DOMContentLoaded 事件监听器中添加以下代码
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const searchResultsContainer = document.querySelector('.search-results-container');
+
+        // 搜索用函数
+        async function searchUsers(username) {
+            try {
+                const response = await fetch(`${baseUrl}/api/user/search?keyword=${encodeURIComponent(username)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // 清空之前的搜索结果
+                    searchResultsContainer.innerHTML = '';
+
+                    if (data.users.length === 0) {
+                        searchResultsContainer.innerHTML = '<div class="no-results">未找到相关用户</div>';
+                        return;
+                    }
+
+                    // 显示搜索结果
+                    data.users.forEach(user => {
+                        const resultItem = document.createElement('div');
+                        resultItem.className = 'search-result-item';
+                        resultItem.innerHTML = `
+                            <img class="search-result-avatar" src="${user.avatar || './img/default-avatar.jpg'}" alt="头像">
+                            <div class="search-result-info">
+                                <div class="search-result-name">${user.nickname || user.username}</div>
+                                <div class="search-result-username">@${user.username}</div>
+                            </div>
+                            <button class="add-friend-btn" onclick="sendFriendRequest('${user.username}')">
+                                添加好友
+                            </button>
+                        `;
+                        searchResultsContainer.appendChild(resultItem);
+                    });
+                } else {
+                    throw new Error(data.message || '搜索失败');
+                }
+            } catch (error) {
+                console.error('搜索用户失败:', error);
+                alert('搜索用户失败: ' + error.message);
+            }
+        }
+
+        // 搜索按钮点击事件
+        searchButton.addEventListener('click', () => {
+            const username = searchInput.value.trim();
+            if (username) {
+                searchUsers(username);
+            } else {
+                alert('请输入用户名');
+            }
+        });
+
+        // 输入框回车事件
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const username = searchInput.value.trim();
+                if (username) {
+                    searchUsers(username);
+                } else {
+                    alert('请输入用户名');
+                }
+            }
+        });
+    });
+
+    // 在 DOMContentLoaded 事件中添加
+    document.addEventListener('DOMContentLoaded', function() {
+        // 初始加载
+        loadPendingRequestsCount();
+        
+        // 每30秒刷新一次
+        setInterval(loadPendingRequestsCount, 30000);
+    });
+
+    // 添加发送好友请求的函数
+    window.sendFriendRequest = async function(friendUsername) {
+        try {
+            const currentUsername = getQueryParam('username');
+            const response = await fetch(`${baseUrl}/api/friendship/request`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `username=${encodeURIComponent(currentUsername)}&friendUsername=${encodeURIComponent(friendUsername)}`
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('好友请求已发送');
+                // 禁用发送按钮
+                const button = document.querySelector(`button[onclick="sendFriendRequest('${friendUsername}')"]`);
+                if (button) {
+                    button.disabled = true;
+                    button.textContent = '请求已发送';
+                }
+            } else {
+                throw new Error(data.message || '发送请求失败');
+            }
+        } catch (error) {
+            console.error('发送好友请求失败:', error);
+            alert('发送好友请求失败: ' + error.message);
+        }
+    };
+
+    // 添加查看好友请求的功能
+    document.querySelector('.friend-requests-btn').addEventListener('click', async function() {
+        try {
+            const username = getQueryParam('username');
+            const response = await fetch(`${baseUrl}/api/friendship/requests?username=${encodeURIComponent(username)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const searchResultsContainer = document.querySelector('.search-results-container');
+                searchResultsContainer.innerHTML = `
+                    <div class="friend-requests-container">
+                        <h3>好友请求</h3>
+                        ${data.requests.length === 0 ? 
+                            '<div class="no-requests">暂无好友请求</div>' : 
+                            data.requests.map(request => `
+                                <div class="friend-request-item">
+                                    <img class="search-result-avatar" src="${request.user.avatar || './img/default-avatar.jpg'}" alt="头像">
+                                    <div class="search-result-info">
+                                        <div class="search-result-name">${request.user.nickname || request.user.username}</div>
+                                        <div class="search-result-username">@${request.user.username}</div>
+                                    </div>
+                                    <div class="request-actions">
+                                        <button class="accept-btn" onclick="handleFriendRequest(${request.id}, 1)">接受</button>
+                                        <button class="reject-btn" onclick="handleFriendRequest(${request.id}, 2)">拒绝</button>
+                                    </div>
+                                </div>
+                            `).join('')
+                        }
+                    </div>
+                `;
+            } else {
+                throw new Error(data.message || '获取好友请求失败');
+            }
+        } catch (error) {
+            console.error('获取好友请求失败:', error);
+            alert('获取好友请求失败: ' + error.message);
+        }
+    });
+
+    // 添加处理好友请求的函数
+    window.handleFriendRequest = async function(friendshipId, status) {
+        try {
+            const response = await fetch(`${baseUrl}/api/friendship/handle`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `friendshipId=${friendshipId}&status=${status}`
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert(status === 1 ? '已接受好友请求' : '已拒绝好友请求');
+                // 刷新好友请求列表
+                document.querySelector('.friend-requests-btn').click();
+                // 更新好友请求数量
+                loadPendingRequestsCount();
+            } else {
+                throw new Error(data.message || '处理请求失败');
+            }
+        } catch (error) {
+            console.error('处理好友请求失败:', error);
+            alert('处理好友请求失败: ' + error.message);
+        }
+    };
+
+    // 添加加载好友列表的函数
+    async function loadFriendList() {
+        try {
+            const username = getQueryParam('username');
+            const response = await fetch(`${baseUrl}/api/friendship/list?username=${encodeURIComponent(username)}`);
+            const data = await response.json();
+
+            if (data.success) {
+                const friendListContent = document.querySelector('.friend-list-content');
+                
+                if (!data.friends || data.friends.length === 0) {
+                    friendListContent.innerHTML = '<div class="no-friends">暂无好友</div>';
+                    return;
+                }
+
+                // 处理好友列表数据
+                const friendItems = data.friends.map(friendship => {
+                    // 判断好友对象是user还是friend字段
+                    const friendUser = friendship.user.username === username ? friendship.friend : friendship.user;
+                    
+                    return `
+                        <div class="friend-item" data-username="${friendUser.username}">
+                            <img class="friend-avatar" src="${friendUser.avatar || './img/defult.jpeg'}" alt="头像">
+                            <div class="friend-info">
+                                <div class="friend-name" data-username="${friendUser.username}">${friendUser.nickname || friendUser.username}</div>
+                                <div class="friend-status">
+                                    <span class="status-text">${friendUser.status === 1 ? '在线' : '离线'}</span>
+                                    <span class="status-indicator ${friendUser.status === 1 ? 'status-online' : 'status-offline'}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                friendListContent.innerHTML = friendItems;
+
+                // 添加点击事件处理
+                const friendElements = friendListContent.querySelectorAll('.friend-item');
+                friendElements.forEach(element => {
+                    element.addEventListener('click', function() {
+                        const friendUsername = this.querySelector('.friend-name').getAttribute('data-username');
+                        const friendNickname = this.querySelector('.friend-name').textContent;
+                        handleFriendClick(friendUsername, friendNickname);
+                    });
+                });
+
+            } else {
+                throw new Error(data.message || '获取好友列表失败');
+            }
+        } catch (error) {
+            console.error('加载好友列表失败:', error);
+            const friendListContent = document.querySelector('.friend-list-content');
+            friendListContent.innerHTML = '<div class="error-message">加载好友列表失败</div>';
+        }
+    }
+
+    // 在DOMContentLoaded事件中添加初始化调用
+    document.addEventListener('DOMContentLoaded', function() {
+        // ... 现有的代码 ...
+        
+        // 初始加载好友列表
+        loadFriendList();
+        
+        // 每60秒刷新一次好友列表（可以根据需求调整间隔时间）
+        setInterval(loadFriendList, 60000);
+    });
+
+    // 添加好友状态变化的WebSocket处理
+    ws.onmessage = function(event) {
+        const message = event.data;
+        // 保留现有的好友请求处理逻辑
+        if (message.startsWith('FRIEND_REQUEST:')) {
+            // ... 现有的好友请求处理代码 ...
+        }
+        // 添加好友状态变化的处理
+        else if (message.startsWith('FRIEND_STATUS:')) {
+            loadFriendList(); // 重新加载好友列表以更新状态
+        }
+    };
+
+    // 添加跳转到公共聊天室的函数
+    function joinPublicChat() {
+        const username = getQueryParam('username');
+        if (username) {
+            window.location.href = `${baseUrl}/ws-client.html?username=${encodeURIComponent(username)}`;
+        } else {
+            alert('获取用户信息失败，请重新登录');
+            window.location.href = '/login.html';
+        }
+    }
+
+    // 保留并修改处理点击事件的函数
+    function handleFriendClick(friendUsername, friendNickname) {
+        const currentUsername = getQueryParam('username');
+        
+        // 在新窗口打开私聊页面，添加当前用户和目标用户参数
+        const chatUrl = `personchat.html?username=${encodeURIComponent(currentUsername)}&target=${encodeURIComponent(friendUsername)}`;
+        window.open(chatUrl, '_blank', 'width=800,height=600');
+    }
+
+    // 修改 DOMContentLoaded 事件监听器
+    document.addEventListener('DOMContentLoaded', function() {
+        // 保留好友列表加载
+        loadFriendList();
+        
+        // 每60秒刷新一次好友列表
+        setInterval(loadFriendList, 60000);
+    });
+</script>
+
+</html>
