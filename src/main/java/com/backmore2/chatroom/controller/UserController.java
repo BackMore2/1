@@ -187,4 +187,26 @@ public class UserController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    @PostMapping("/status")
+    public ResponseEntity<?> updateUserStatus(@RequestParam String username, @RequestParam Integer status) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            User user = userService.findByUsername(username);
+            if (user != null) {
+                userService.updateStatus(user.getId(), status);
+                response.put("success", true);
+                response.put("message", "状态更新成功");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "用户不存在");
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 } 

@@ -998,7 +998,7 @@
                 if (data.success && data.user) {
                     updateUserInfo(data.user);
                 } else {
-                    throw new Error(data.message || '获取用户信息失败');
+                    throw new Error(data.message || '获取用��信息失败');
                 }
             } catch (error) {
                 console.error('获取用户信息失败:', error);
@@ -1035,7 +1035,7 @@
             }
         }
         
-        // 为每个导航项添加点击事件
+        // ���每个导航项添加点击事件
         nav.forEach((item) => {
             item.addEventListener("click", function(e) {
                 // 如果点击的是退出登录，不阻止默认行为
@@ -1049,7 +1049,20 @@
 
     function logout() {
         if(confirm('确定要退出登录吗？')) {
-            window.location.href = baseUrl + '/login.html';
+            const username = getQueryParam('username');
+            // 调用后端API更新用户状态为离线
+            fetch(`${baseUrl}/api/user/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `username=${encodeURIComponent(username)}&status=0`
+            }).then(() => {
+                window.location.href = baseUrl + '/login.html';
+            }).catch(error => {
+                console.error('更新状态失败:', error);
+                window.location.href = baseUrl + '/login.html';
+            });
         }
     }
 
